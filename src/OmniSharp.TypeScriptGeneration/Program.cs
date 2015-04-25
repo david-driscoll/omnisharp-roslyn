@@ -29,6 +29,7 @@ namespace OmniSharp.TypeScriptGeneration
 
             fluent.WithMemberTypeFormatter(TsFluentFormatters.FormatPropertyType);
             fluent.WithMemberFormatter(TsFluentFormatters.FormatPropertyName);
+            fluent.WithReference("../../../../node_modules/rx/ts/rx.all.d.ts");
             //definitions.WithTypeFormatter(IgnoreInvalidTypes);
 
             foreach (var model in GetApplicableTypes())
@@ -37,7 +38,7 @@ namespace OmniSharp.TypeScriptGeneration
             }
 
             var tsModel = fluent.ModelBuilder.Build();
-            foreach (var @class in tsModel.Classes.Where(z => z.Module.Name.StartsWith("System")))
+            foreach (var @class in tsModel.Classes.Where(z => z.Module.Name.StartsWith("System", StringComparison.Ordinal)))
             {
                 @class.IsIgnored = true;
             }

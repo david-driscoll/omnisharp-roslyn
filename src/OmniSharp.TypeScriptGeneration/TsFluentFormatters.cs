@@ -9,19 +9,19 @@ namespace OmniSharp.TypeScriptGeneration
 {
     public static class TsFluentFormatters
     {
-        public static string FormatPropertyType(TsProperty type, string memberTypeName)
+        public static string FormatPropertyType(TsProperty property, string memberTypeName)
         {
-            if (type.MemberInfo.DeclaringType.GetProperty(type.MemberInfo.Name).PropertyType == typeof(IDictionary<string, string>))
+            if (property.MemberInfo.DeclaringType.GetProperty(property.MemberInfo.Name).PropertyType == typeof(IDictionary<string, string>))
             {
                 return "{ [key: string]: string }";
             }
 
-            if (type.MemberInfo.DeclaringType.GetProperty(type.MemberInfo.Name).PropertyType == typeof(Guid))
+            if (property.MemberInfo.DeclaringType.GetProperty(property.MemberInfo.Name).PropertyType == typeof(Guid))
             {
                 return "string";
             }
 
-            if (type.MemberInfo.DeclaringType.GetProperty(type.MemberInfo.Name).PropertyType == typeof(Stream))
+            if (property.MemberInfo.DeclaringType.GetProperty(property.MemberInfo.Name).PropertyType == typeof(Stream))
             {
                 return "any";
             }
@@ -39,9 +39,14 @@ namespace OmniSharp.TypeScriptGeneration
 
             // Request type arguments are optional
             // TODO: Leverage [Required] to know what is needed and not?
-            if (property.MemberInfo.DeclaringType.Name != nameof(Request) &&
-                !property.MemberInfo.DeclaringType.Name.Contains(nameof(Packet)) &&
+            if (!property.MemberInfo.DeclaringType.Name.Contains(nameof(Packet)) &&
                 property.MemberInfo.DeclaringType.Name.Contains(nameof(Request)))
+            {
+                return $"{property.Name}?";
+            }
+
+            if (property.MemberInfo.DeclaringType.Name == nameof(Packet) &&
+                property.MemberInfo.DeclaringType.GetProperty(property.MemberInfo.Name).Name == nameof(Packet.Type))
             {
                 return $"{property.Name}?";
             }

@@ -22,70 +22,98 @@ namespace OmniSharp.TypeScriptGeneration
         {
             foreach (var method in GetControllerMethods())
             {
+                var requestType = method.RequestType;
+                if (method.RequestArray)
+                    requestType += "[]";
                 var returnType = method.ReturnType;
-                if (method.ReturnsArray)
+                if (method.ReturnArray)
                     returnType += "[]";
                 if (method.RequestType != null)
                 {
-                        yield return $"(action: \"{method.Action}\", request: {method.RequestType.FullName}): Promise<{returnType}>;";
+                    yield return $"request(command: \"{method.Action}\", request: {requestType}): Rx.Observable<{returnType}>;";
                 }
                 else
                 {
-                    yield return $"(action: \"{method.Action}\"): Promise<{returnType}>";
+                    yield return $"request(command: \"{method.Action}\"): Rx.Observable<{returnType}>;";
                 }
             }
+
+            yield return "request(command: string, request?: any): Rx.Observable<any>;";
         }
 
         class MethodResult
         {
             public string Action { get; set; }
-            public Type RequestType { get; set; }
+            public string RequestType { get; set; }
+            public bool RequestArray { get; set; }
             public string ReturnType { get; set; }
-            public bool ReturnsArray { get; set; }
+            public bool ReturnArray { get; set; }
         }
 
         private static IEnumerable<MethodResult> GetControllerMethods()
         {
-            var controller = typeof(OmnisharpController);
-            foreach (var method in controller.GetTypeInfo().DeclaredMethods.Where(z => z.IsPublic))
+            var methods = typeof(OmnisharpController).Assembly.GetTypes()
+                .SelectMany(z => z.GetTypeInfo()
+                    .DeclaredMethods.Where(x =>
+                        x.GetCustomAttributes<HttpPostAttribute>().Any()));
+
+            foreach (var method in methods.Where(z => z.IsPublic))
             {
                 var attribute = method.GetCustomAttribute<HttpPostAttribute>();
-                if (attribute != null)
+                var parameters = method.GetParameters();
+                var param = parameters.Length == 1 ? parameters[0].ParameterType : null;
+
+
+                var paramType = param;
+                var paramArray = false;
+                if (paramType != null && paramType.Name.StartsWith(nameof(IEnumerable), StringComparison.Ordinal))
                 {
-                    var parameters = method.GetParameters();
-                    var param = parameters.Length == 1 ? parameters[0].ParameterType : null;
-
-                    var returnType = method.ReturnType;
-                    var returnsArray = false;
-                    if (returnType.Name.StartsWith(nameof(Task), StringComparison.Ordinal))
-                    {
-                        returnType = returnType.GetGenericArguments().First();
-                    }
-                    if (returnType.Name.StartsWith(nameof(IEnumerable), StringComparison.Ordinal))
-                    {
-                        returnsArray = true;
-                        returnType = returnType.GetGenericArguments().First();
-                    }
-
-                    string returnString = "any";
-                    if (returnType != null && returnType.FullName.StartsWith(InferNamespace(typeof(Request)), StringComparison.Ordinal))
-                    {
-                        returnString = returnType.FullName;
-                    }
-
-                    if (returnType == typeof(Boolean))
-                    {
-                        returnString = nameof(Boolean).ToLowerInvariant();
-                    }
-
-                    yield return new MethodResult()
-                    {
-                        RequestType = param,
-                        ReturnType = returnString,
-                        ReturnsArray = returnsArray,
-                        Action = attribute.Template
-                    };
+                    paramArray = true;
+                    paramType = paramType.GetGenericArguments().First();
                 }
+
+                string paramString = "any";
+                if (paramType != null && paramType.FullName.StartsWith(InferNamespace(typeof(Request)), StringComparison.Ordinal))
+                {
+                    paramString = paramType.FullName;
+                }
+
+                if (paramType == typeof(Boolean))
+                {
+                    paramString = nameof(Boolean).ToLowerInvariant();
+                }
+
+                var returnType = method.ReturnType;
+                var returnsArray = false;
+                if (returnType.Name.StartsWith(nameof(Task), StringComparison.Ordinal))
+                {
+                    returnType = returnType.GetGenericArguments().First();
+                }
+                if (returnType.Name.StartsWith(nameof(IEnumerable), StringComparison.Ordinal))
+                {
+                    returnsArray = true;
+                    returnType = returnType.GetGenericArguments().First();
+                }
+
+                string returnString = "any";
+                if (returnType != null && returnType.FullName.StartsWith(InferNamespace(typeof(Request)), StringComparison.Ordinal))
+                {
+                    returnString = returnType.FullName;
+                }
+
+                if (returnType == typeof(Boolean))
+                {
+                    returnString = nameof(Boolean).ToLowerInvariant();
+                }
+
+                yield return new MethodResult()
+                {
+                    RequestType = paramString,
+                    RequestArray = paramArray,
+                    ReturnType = returnString,
+                    ReturnArray = returnsArray,
+                    Action = attribute.Template.TrimStart('/')
+                };
             }
         }
 
