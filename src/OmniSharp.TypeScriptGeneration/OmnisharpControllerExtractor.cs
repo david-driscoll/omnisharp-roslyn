@@ -30,11 +30,11 @@ namespace OmniSharp.TypeScriptGeneration
                     returnType += "[]";
                 if (method.RequestType != null)
                 {
-                    yield return $"request(command: \"{method.Action}\", request: {requestType}): Rx.Observable<{returnType}>;";
+                    yield return $"{method.Action}(request: {requestType}): Rx.Observable<{returnType}>;";
                 }
                 else
                 {
-                    yield return $"request(command: \"{method.Action}\"): Rx.Observable<{returnType}>;";
+                    yield return $"{method.Action}(): Rx.Observable<{returnType}>;";
                 }
             }
 
