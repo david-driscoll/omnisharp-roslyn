@@ -20,8 +20,10 @@ namespace OmniSharp.TypeScriptGeneration
 
         private static IEnumerable<string> GetInterfaceMethods()
         {
-            foreach (var method in GetControllerMethods())
+            var methods = GetControllerMethods().ToArray();
+            foreach (var method in methods)
             {
+                var observeName = $"observe{method.Action[0].ToString().ToUpper()}{method.Action.Substring(1)}";
                 var requestType = method.RequestType;
                 if (method.RequestArray)
                     requestType += "[]";
@@ -31,10 +33,12 @@ namespace OmniSharp.TypeScriptGeneration
                 if (method.RequestType != null)
                 {
                     yield return $"{method.Action}(request: {requestType}): Rx.Observable<{returnType}>;";
+                    yield return $"{observeName}: Rx.Observable<{returnType}>;";
                 }
                 else
                 {
                     yield return $"{method.Action}(): Rx.Observable<{returnType}>;";
+                    yield return $"{observeName}: Rx.Observable<{returnType}>;";
                 }
             }
 
