@@ -24,25 +24,27 @@ namespace OmniSharp.TypeScriptGeneration
             foreach (var method in methods)
             {
                 var observeName = $"observe{method.Action[0].ToString().ToUpper()}{method.Action.Substring(1)}";
+
                 var requestType = method.RequestType;
                 if (method.RequestArray)
                     requestType += "[]";
+
                 var returnType = method.ReturnType;
                 if (method.ReturnArray)
                     returnType += "[]";
+
                 if (method.RequestType != null)
                 {
                     yield return $"{method.Action}(request: {requestType}): Rx.Observable<{returnType}>;";
-                    yield return $"{observeName}: Rx.Observable<{returnType}>;";
+                    yield return $"{method.Action}Promise(request: {requestType}): Rx.IPromise<{returnType}>;";
                 }
                 else
                 {
                     yield return $"{method.Action}(): Rx.Observable<{returnType}>;";
-                    yield return $"{observeName}: Rx.Observable<{returnType}>;";
+                    yield return $"{method.Action}Promise(): Rx.IPromise<{returnType}>;";
                 }
+                yield return $"{observeName}: Rx.Observable<{returnType}>;";
             }
-
-            yield return "request(command: string, request?: any): Rx.Observable<any>;";
         }
 
         class MethodResult

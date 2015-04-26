@@ -29,7 +29,6 @@ namespace OmniSharp.TypeScriptGeneration
 
             fluent.WithMemberTypeFormatter(TsFluentFormatters.FormatPropertyType);
             fluent.WithMemberFormatter(TsFluentFormatters.FormatPropertyName);
-            fluent.WithReference("../../../../node_modules/rx/ts/rx.all.d.ts");
             //definitions.WithTypeFormatter(IgnoreInvalidTypes);
 
             foreach (var model in GetApplicableTypes())
