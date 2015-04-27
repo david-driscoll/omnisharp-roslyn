@@ -15,10 +15,10 @@ namespace OmniSharp.TypeScriptGeneration
         {
             var methods = "        " + string.Join("\n        ", GetInterfaceMethods()) + "\n";
 
-            return $"declare module {nameof(OmniSharp)} {{\n{ResultInterface}    interface Api {{\n{methods}    }}\n}}";
+            return $"declare module {nameof(OmniSharp)} {{\n{ContextInterface}    interface Api {{\n{methods}    }}\n}}";
         }
 
-        private static string ResultInterface = "    interface Result<TRequest, TResponse>\n    {\n        request: TRequest;\n        response: TResponse;\n    }\n\n";
+        private static string ContextInterface = "    interface Context<TRequest, TResponse>\n    {\n        request: TRequest;\n        response: TResponse;\n    }\n\n";
 
         private static IEnumerable<string> GetInterfaceMethods()
         {
@@ -39,7 +39,7 @@ namespace OmniSharp.TypeScriptGeneration
                 {
                     yield return $"{method.Action}(request: {requestType}): Rx.Observable<{returnType}>;";
                     yield return $"{method.Action}Promise(request: {requestType}): Rx.IPromise<{returnType}>;";
-                    yield return $"{observeName}: Rx.Observable<Result<{requestType}, {returnType}>>;";
+                    yield return $"{observeName}: Rx.Observable<Context<{requestType}, {returnType}>>;";
                 }
                 else
                 {
