@@ -6,6 +6,7 @@ using Microsoft.AspNet.Mvc;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Text;
+using OmniSharp.Dnx;
 using OmniSharp.Models;
 
 namespace OmniSharp
@@ -13,12 +14,14 @@ namespace OmniSharp
     public partial class OmnisharpController
     {
         [HttpPost("highlight")]
-        public async Task<HighlightResponse> Highlight(HighlightRequest request)
+        public async Task<HighlightResponse> Highlight([FromServices] DnxContext dnxContext, HighlightRequest request)
         {
             var documents = _workspace.GetDocuments(request.FileName);
-            if (request.ProjectNames != null && request.ProjectNames.Length > 0)
+            // only dnx projects currently support multiple projects
+
+            if (dnxContext.Projects.Keys.Count > 0 && request.ProjectNames != null && request.ProjectNames.Length > 0)
             {
-                documents = documents.Where(d => request.ProjectNames.Contains(d.Project.Name, StringComparer.Ordinal));
+                documents = documents.Where(document => request.ProjectNames.Contains(document.Project.Name, StringComparer.OrdinalIgnoreCase));
             }
 
             if (request.Classifications == null || request.Classifications.Length > 0)
