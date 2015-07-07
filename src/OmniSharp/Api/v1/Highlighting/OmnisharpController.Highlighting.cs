@@ -6,7 +6,6 @@ using Microsoft.AspNet.Mvc;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Text;
-using OmniSharp.Dnx;
 using OmniSharp.Models;
 
 namespace OmniSharp
@@ -14,14 +13,12 @@ namespace OmniSharp
     public partial class OmnisharpController
     {
         [HttpPost("highlight")]
-        public async Task<HighlightResponse> Highlight([FromServices] DnxContext dnxContext, HighlightRequest request)
+        public async Task<HighlightResponse> Highlight(HighlightRequest request)
         {
             var documents = _workspace.GetDocuments(request.FileName);
-            // only dnx projects currently support multiple projects
-
-            if (dnxContext.Projects.Keys.Count > 0 && request.ProjectNames != null && request.ProjectNames.Length > 0)
+            if (request.ProjectNames != null && request.ProjectNames.Length > 0)
             {
-                documents = documents.Where(document => request.ProjectNames.Contains(document.Project.Name, StringComparer.OrdinalIgnoreCase));
+                documents = documents.Where(d => request.ProjectNames.Contains(d.Project.Name, StringComparer.Ordinal));
             }
 
             if (request.Classifications == null || request.Classifications.Length > 0)
@@ -51,7 +48,7 @@ namespace OmniSharp
                 }
                 else
                 {
-                    foreach (var line in request.Lines)
+                    foreach (var line in request.Lines.Where(z => z <= text.Lines.Count))
                     {
                         foreach (var span in await Classifier.GetClassifiedSpansAsync(document, text.Lines[line - 1].Span))
                         {
