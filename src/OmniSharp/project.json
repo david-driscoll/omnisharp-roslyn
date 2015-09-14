@@ -25,7 +25,8 @@
     "dnx451": {
       "dependencies": {
         "OmniSharp.MSBuild": "1.0.0-*",
-        "OmniSharp.ScriptCs": "1.0.0-*"
+        "OmniSharp.ScriptCs": "1.0.0-*",
+        "OmniSharp.Cake": "1.0.0-*"
       }
     },
     "dnxcore50": {
