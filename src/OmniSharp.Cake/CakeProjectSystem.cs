@@ -15,6 +15,7 @@ using OmniSharp.Services;
 using Cake.Core;
 using Cake.Core.IO;
 using Cake.Core.Scripting;
+using Cake.Common.Build;
 using Path = System.IO.Path;
 
 namespace OmniSharp.Cake
@@ -117,7 +118,7 @@ namespace OmniSharp.Cake
                 typeof(System.Xml.XmlReader).Assembly, // System.Xml
                 typeof(System.Xml.Linq.XDocument).Assembly, // System.Xml.Linq
                 typeof(ICakeContext).Assembly, // Cake.Core
-                
+                typeof(BuildSystem).Assembly,
             };
             return defaultAssemblies.Select(assembly => MetadataReference.CreateFromAssembly(assembly));
         }
@@ -129,7 +130,8 @@ namespace OmniSharp.Cake
                 "System", "System.Collections.Generic", "System.Linq",
                 "System.Text", "System.Threading.Tasks", "System.IO",
                 "Cake.Core", "Cake.Core.IO",
-                "Cake.Core.Scripting", "Cake.Core.Diagnostics"
+                "Cake.Core.Scripting", "Cake.Core.Diagnostics",
+                "Cake.Common.Build"
             };
             return defaultNamespaces;
         }
