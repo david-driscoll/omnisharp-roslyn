@@ -117,6 +117,7 @@ namespace OmniSharp.Cake
                 typeof(System.Xml.XmlReader).Assembly, // System.Xml
                 typeof(System.Xml.Linq.XDocument).Assembly, // System.Xml.Linq
                 typeof(ICakeContext).Assembly, // Cake.Core
+                
             };
             return defaultAssemblies.Select(assembly => MetadataReference.CreateFromAssembly(assembly));
         }

@@ -12,7 +12,9 @@
     "dnx451": {
       "frameworkAssemblies": {},
       "dependencies": {
-          "Cake.Core": "0.5.4"
+        "Cake.Core": "0.5.5",
+        "Cake.Common": "0.5.5",
+        "Cake.Testing": "0.5.5"
       }
     }
   }
