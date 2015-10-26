@@ -16,7 +16,8 @@
     "Microsoft.Framework.Logging.Console": "1.0.0-beta4",
     "Microsoft.Framework.ConfigurationModel.Json": "1.0.0-beta4",
     "Microsoft.Framework.Caching.Memory": "1.0.0-beta4",
-    "Microsoft.Framework.FileSystemGlobbing": "1.0.0-beta4"
+    "Microsoft.Framework.FileSystemGlobbing": "1.0.0-beta4",
+    "Unboxed.MoveToFile": "1.0.0-*"
   },
   "commands": {
     "omnisharp": "run"
@@ -25,8 +26,7 @@
     "dnx451": {
       "dependencies": {
         "OmniSharp.MSBuild": "1.0.0-*",
-        "OmniSharp.ScriptCs": "1.0.0-*",
-        "OmniSharp.Cake": "1.0.0-*"
+        "OmniSharp.ScriptCs": "1.0.0-*"
       }
     },
     "dnxcore50": {
