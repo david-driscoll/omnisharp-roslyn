@@ -81,7 +81,8 @@ namespace OmniSharp.LanguageServerProtocol
             _environment = new OmniSharpEnvironment(
                 Helpers.FromUri(initializeParams.RootUri),
                 Convert.ToInt32(initializeParams.ProcessId ?? -1L),
-                GetLogLevel(initializeParams.Trace),
+                // GetLogLevel(initializeParams.Trace),
+                LogLevel.Trace,
                 _application.OtherArgs.ToArray());
 
             _loggerFactory.AddProvider(_server, _environment);
@@ -133,7 +134,7 @@ namespace OmniSharp.LanguageServerProtocol
             // TODO: Make it easier to resolve handlers from MEF (without having to add more attributes to the services if we can help it)
             var workspace = _compositionHost.GetExport<OmniSharpWorkspace>();
 
-            _server.AddHandlers(TextDocumentSyncHandler.Enumerate(_handlers, workspace));
+            _server.AddHandlers(TextDocumentSyncHandler.Enumerate(_handlers, _loggerFactory, workspace));
             _server.AddHandlers(DefinitionHandler.Enumerate(_handlers));
             _server.AddHandlers(HoverHandler.Enumerate(_handlers));
             _server.AddHandlers(CompletionHandler.Enumerate(_handlers));

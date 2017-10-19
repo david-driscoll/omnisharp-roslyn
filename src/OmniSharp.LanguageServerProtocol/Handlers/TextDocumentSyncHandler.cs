@@ -4,6 +4,8 @@ using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using OmniSharp.Extensions.JsonRpc;
 using OmniSharp.Extensions.LanguageServer.Abstractions;
 using OmniSharp.Extensions.LanguageServer.Capabilities.Client;
@@ -25,6 +27,7 @@ namespace OmniSharp.LanguageServerProtocol.Handlers
     {
         public static IEnumerable<IJsonRpcHandler> Enumerate(
             RequestHandlers handlers,
+            ILoggerFactory loggerFactory,
             OmniSharpWorkspace workspace)
         {
             foreach (var (selector, openHandler, closeHandler, bufferHandler) in handlers
@@ -33,10 +36,15 @@ namespace OmniSharp.LanguageServerProtocol.Handlers
                     Mef.IRequestHandler<FileCloseRequest, FileCloseResponse>,
                     Mef.IRequestHandler<UpdateBufferRequest, object>>())
             {
+                var logger = loggerFactory.CreateLogger<TextDocumentSyncHandler>();
+                logger.LogDebug("openHandler: {openHandler}", openHandler);
+                logger.LogDebug("closeHandler: {closeHandler}", closeHandler);
+                logger.LogDebug("bufferHandler: {bufferHandler}", bufferHandler);
+                logger.LogDebug("selector: {selector}", (string)selector);
                 // TODO: Fix once cake has working support for incremental
-                var documentSyncKind = TextDocumentSyncKind.Incremental;
+                var documentSyncKind = openHandler == null || closeHandler == null ? TextDocumentSyncKind.Full : TextDocumentSyncKind.Incremental;
                 // if (selector.ToString().IndexOf(".cake") > -1) documentSyncKind = TextDocumentSyncKind.Full;
-                yield return new TextDocumentSyncHandler(openHandler, closeHandler, bufferHandler, selector, documentSyncKind, workspace);
+                yield return new TextDocumentSyncHandler(openHandler, closeHandler, bufferHandler, selector, documentSyncKind, workspace, logger);
             }
         }
 
@@ -47,6 +55,7 @@ namespace OmniSharp.LanguageServerProtocol.Handlers
         private readonly Mef.IRequestHandler<FileCloseRequest, FileCloseResponse> _closeHandler;
         private readonly Mef.IRequestHandler<UpdateBufferRequest, object> _bufferHandler;
         private readonly OmniSharpWorkspace _workspace;
+        private readonly ILogger<TextDocumentSyncHandler> _logger;
 
         [ImportingConstructor]
         public TextDocumentSyncHandler(
@@ -55,12 +64,14 @@ namespace OmniSharp.LanguageServerProtocol.Handlers
             Mef.IRequestHandler<UpdateBufferRequest, object> bufferHandler,
             DocumentSelector documentSelector,
             TextDocumentSyncKind documentSyncKind,
-            OmniSharpWorkspace workspace)
+            OmniSharpWorkspace workspace,
+            ILogger<TextDocumentSyncHandler> logger)
         {
             _openHandler = openHandler;
             _closeHandler = closeHandler;
             _bufferHandler = bufferHandler;
             _workspace = workspace;
+            _logger = logger;
             _documentSelector = documentSelector;
             Options.Change = documentSyncKind;
         }
@@ -69,8 +80,8 @@ namespace OmniSharp.LanguageServerProtocol.Handlers
         {
             Change = TextDocumentSyncKind.Incremental,
             OpenClose = true,
-            WillSave = false, // Do we need to configure this?
-            WillSaveWaitUntil = false,  // Do we need to configure this?
+            WillSave = true, // Do we need to configure this?
+            WillSaveWaitUntil = true,  // Do we need to configure this?
             Save = new SaveOptions()
             {
                 IncludeText = true
@@ -88,6 +99,8 @@ namespace OmniSharp.LanguageServerProtocol.Handlers
         {
             if (notification.ContentChanges.Count() == 1 && notification.ContentChanges.First().Range == null)
             {
+                _logger.LogDebug("_bufferHandler: {_bufferHandler} - _documentSelector: {_documentSelector}", _bufferHandler, (string)_documentSelector);
+                _logger.LogDebug("Received {Mode} {Request}", TextDocumentSyncKind.Full, notification.ContentChanges);
                 var change = notification.ContentChanges.First();
                 return _bufferHandler.Handle(new UpdateBufferRequest()
                 {
@@ -96,6 +109,7 @@ namespace OmniSharp.LanguageServerProtocol.Handlers
                 });
             }
 
+            _logger.LogDebug("Received {Mode} {Request}", TextDocumentSyncKind.Incremental, notification.ContentChanges);
             var changes = notification.ContentChanges
                 .Select(change => new LinePositionSpanTextChange()
                 {
